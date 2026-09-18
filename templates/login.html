@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Hệ Thống SGK 2026-2027</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #eef2f7; min-height: 100vh; }
+        .school-list-box { max-height: 480px; overflow-y: auto; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid py-4 px-md-5">
+    <div class="text-center mb-4 bg-primary text-white p-3 rounded shadow-sm">
+        <h3 class="mb-0 fw-bold">SỞ GIÁO DỤC VÀ ĐÀO TẠO PHÚ THỌ</h3>
+        <p class="mb-0 text-white-50 fs-6">Hệ Thống Báo Cáo & Cung Ứng SGK Năm Học 2026 - 2027</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show fw-bold mb-3" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h5 class="mb-0 fw-bold">ĐĂNG NHẬP HỆ THỐNG</h5>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="nav nav-pills nav-justified mb-3" id="loginTab">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-bold" id="school-tab" data-bs-toggle="pill" data-bs-target="#school-login">Trường Báo Cáo</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-bold text-danger" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-login">Sở GD&ĐT / Quản Trị</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="school-login">
+                            <form action="{{ url_for('login') }}" method="POST">
+                                <input type="hidden" name="login_type" value="school">
+                                
+                                <div class="mb-3 bg-light p-2 rounded border">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="school_mode" id="modeSelect" value="select" checked onclick="toggleSchoolInput('select')">
+                                        <label class="form-check-label fw-bold" for="modeSelect">Chọn từ danh sách Sở</label>
+                                    </div>
+                                    <div class="form-check form-check-inline mt-1">
+                                        <input class="form-check-input" type="radio" name="school_mode" id="modeCustom" value="custom" onclick="toggleSchoolInput('custom')">
+                                        <label class="form-check-label fw-bold text-primary" for="modeCustom">➕ Khai báo đơn vị mới</label>
+                                    </div>
+                                </div>
+
+                                <div id="selectSchoolBox" class="mb-3">
+                                    <label class="form-label fw-bold">Chọn Tên Trường / Đơn vị (*)</label>
+                                    <select class="form-select form-select-lg" name="ten_truong_select" id="ten_truong_select">
+                                        <option value="">-- Click vào đây để chọn trường --</option>
+                                        {% for truong in truong_list %}
+                                            <option value="{{ truong }}">{{ truong }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div id="customSchoolBox" class="mb-3 d-none">
+                                    <label class="form-label fw-bold text-primary">Tên Trường / Cơ sở Giáo Dục mới (*)</label>
+                                    <input type="text" class="form-control form-control-lg border-primary mb-2" name="ten_truong_custom" id="ten_truong_custom" placeholder="Nhập đầy đủ tên trường mới...">
+                                    
+                                    <label class="form-label fw-bold">Cấp học của đơn vị (*)</label>
+                                    <select class="form-select" name="cap_hoc_custom" id="cap_hoc_custom">
+                                        <option value="TH">Tiểu học (Lớp 1 - Lớp 5)</option>
+                                        <option value="THCS">Trung học cơ sở (Lớp 6 - Lớp 9)</option>
+                                        <option value="THPT">Trung học phổ thông (Lớp 10 - Lớp 12)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mật khẩu <small class="text-muted fw-normal">(Lần đầu bỏ trống)</small></label>
+                                    <input type="password" class="form-control form-control-lg" name="password" placeholder="Nhập mật khẩu (nếu đã tạo)...">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 fs-6">🚀 ĐĂNG NHẬP HỆ THỐNG</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="admin-login">
+                            <form action="{{ url_for('login') }}" method="POST">
+                                <input type="hidden" name="login_type" value="admin">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cấp độ Quản Trị</label>
+                                    <select class="form-select mb-3" name="admin_level">
+                                        <option value="admin">🔑 Cán Bộ Quản Trị (Thực thi / Reset Mật Khẩu)</option>
+                                        <option value="super_admin">👑 Chủ Tài Khoản Cao Nhất (Super Admin)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mật khẩu Quản trị</label>
+                                    <input type="password" class="form-control form-control-lg" name="password" placeholder="Nhập mật khẩu tương ứng..." required>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100 fw-bold py-2 fs-6">🔑 ĐĂNG NHẬP QUẢN TRỊ</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary">TIẾN ĐỘ BÁO CÁO TOÀN TỈNH ({{ da_bao_cao_list|length }}/{{ tong_so_truong }})</h5>
+                    <input type="text" id="searchReportStatus" class="form-control form-control-sm w-50" placeholder="🔍 Gõ tên trường để lọc nhanh...">
+                </div>
+                <div class="card-body p-3">
+                    {% set percent = ((da_bao_cao_list|length / (tong_so_truong or 1)) * 100)|round(1) %}
+                    <div class="progress mb-3" style="height: 22px;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated fw-bold" role="progressbar" style="width: {{ percent }}%;">
+                            {{ percent }}% Đã hoàn thành
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border border-success rounded p-2 bg-light">
+                                <h6 class="fw-bold text-success border-bottom pb-2 mb-2 d-flex justify-content-between">
+                                    <span>✅ ĐÃ CHỐT BÁO CÁO</span>
+                                    <span class="badge bg-success">{{ da_bao_cao_list|length }}</span>
+                                </h6>
+                                <div class="school-list-box">
+                                    <ul class="list-group list-group-flush" id="submittedList">
+                                        {% for school in da_bao_cao_list %}
+                                            <li class="list-group-item bg-transparent text-success fw-bold py-1 px-2 school-item">
+                                                ✓ {{ school.name }}
+                                                {% if school.so_lan_sua > 0 %}
+                                                    <span class="badge bg-warning text-dark float-end ms-1" style="font-size:10px;">Sửa lần {{ school.so_lan_sua }}</span>
+                                                {% endif %}
+                                                {% if school.is_new == 1 %}
+                                                    <span class="badge bg-info text-dark float-end" style="font-size:10px;">🟢 Khai báo mới</span>
+                                                {% endif %}
+                                            </li>
+                                        {% else %}
+                                            <li class="list-group-item bg-transparent text-muted py-2">Chưa có trường nào chốt.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="border border-danger rounded p-2 bg-light">
+                                <h6 class="fw-bold text-danger border-bottom pb-2 mb-2 d-flex justify-content-between">
+                                    <span>⏳ CHƯA CHỐT BÁO CÁO</span>
+                                    <span class="badge bg-danger">{{ chua_bao_cao_list|length }}</span>
+                                </h6>
+                                <div class="school-list-box">
+                                    <ul class="list-group list-group-flush" id="pendingList">
+                                        {% for school in chua_bao_cao_list %}
+                                            <li class="list-group-item bg-transparent text-secondary py-1 px-2 school-item">
+                                                • {{ school.name }}
+                                                {% if school.is_new == 1 %}
+                                                    <span class="badge bg-info text-dark float-end" style="font-size:10px;">🟢 Khai báo mới</span>
+                                                {% endif %}
+                                            </li>
+                                        {% else %}
+                                            <li class="list-group-item bg-transparent text-success py-2">100% các trường đã chốt!</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSchoolInput(mode) {
+        const selectBox = document.getElementById('selectSchoolBox');
+        const customBox = document.getElementById('customSchoolBox');
+        const selectElem = document.getElementById('ten_truong_select');
+        const customElem = document.getElementById('ten_truong_custom');
+
+        if (mode === 'custom') {
+            selectBox.classList.add('d-none');
+            customBox.classList.remove('d-none');
+            selectElem.required = false;
+            customElem.required = true;
+        } else {
+            selectBox.classList.remove('d-none');
+            customBox.classList.add('d-none');
+            selectElem.required = true;
+            customElem.required = false;
+        }
+    }
+
+    document.getElementById('searchReportStatus')?.addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const items = document.querySelectorAll('.school-item');
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
+</body>
+</html>
